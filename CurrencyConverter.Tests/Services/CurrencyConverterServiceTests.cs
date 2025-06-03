@@ -450,35 +450,6 @@ namespace CurrencyConverter.Tests.Services
             Assert.False(rates.ContainsKey("TRY")); // Restricted currency should be filtered out
         }
 
-        [Fact]
-        public async Task GetAvailableCurrenciesAsync_ReturnsFilteredCurrencies()
-        {
-            // Arrange
-            var allCurrencies = new Dictionary<string, string>
-            {
-                { "USD", "US Dollar" },
-                { "EUR", "Euro" },
-                { "GBP", "British Pound" },
-                { "TRY", "Turkish Lira" },  // Restricted currency
-                { "JPY", "Japanese Yen" }
-            };
-            
-            _mockProvider
-                .Setup(x => x.GetAvailableCurrenciesAsync())
-                .ReturnsAsync(new Dictionary<string, string>(allCurrencies));
 
-            // Act
-            var result = await _service.GetAvailableCurrenciesAsync();
-
-            // Assert
-            Assert.Equal(4, result.Count); // All except TRY
-            Assert.True(result.ContainsKey("USD"));
-            Assert.True(result.ContainsKey("EUR"));
-            Assert.True(result.ContainsKey("GBP"));
-            Assert.True(result.ContainsKey("JPY"));
-            Assert.False(result.ContainsKey("TRY")); // Restricted currency should be filtered out
-            
-            _mockProvider.Verify(x => x.GetAvailableCurrenciesAsync(), Times.Once);
-        }
     }
 }

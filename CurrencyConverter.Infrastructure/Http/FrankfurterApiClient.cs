@@ -88,21 +88,7 @@ namespace CurrencyConverter.Infrastructure.Http
             }
         }
 
-        public async Task<Dictionary<string, string>> GetAvailableCurrenciesAsync()
-        {
-            try
-            {
-                _logger.LogInformation("Requesting available currencies from Frankfurter API");
-                var response = await _httpClient.GetFromJsonAsync<Dictionary<string, string>>("currencies");
-                
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching available currencies from Frankfurter API");
-                throw;
-            }
-        }
+
 
         private string AddQueryParameters(string requestUri, string baseCurrency, List<string> symbols)
         {

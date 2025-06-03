@@ -1,12 +1,12 @@
 using AspNetCoreRateLimit;
 using CurrencyConverter.API.Extensions;
 using CurrencyConverter.API.Middleware;
+using CurrencyConverter.Application.Interfaces;
+using CurrencyConverter.Application.Services;
 using CurrencyConverter.Domain.Entities;
 using CurrencyConverter.Domain.Interfaces;
-using CurrencyConverter.Application.Interfaces;
 using CurrencyConverter.Infrastructure.Http;
 using CurrencyConverter.Infrastructure.Services;
-using CurrencyConverter.Application.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -33,7 +33,7 @@ Log.Logger = new LoggerConfiguration()
         outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
     .WriteTo.File(
         path: "logs/currency-converter-.log",
-        rollingInterval: RollingInterval.Day,
+        rollingInterval: RollingInterval.Hour,
         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
     .CreateLogger();
 
@@ -61,7 +61,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings?.Issuer,
         ValidAudience = jwtSettings?.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Secret ?? "defaultsecretkey123456789012345678901234")),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.Secret)),
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -72,6 +72,8 @@ builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection(
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddInMemoryRateLimiting();
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
+// Configure API options
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -163,8 +165,6 @@ var app = builder.Build();
 // Enable Swagger in all environments
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Currency Converter API v1"));
-
-app.UseHttpsRedirection();
 
 // Use Serilog request logging
 app.UseSerilogRequestLogging();

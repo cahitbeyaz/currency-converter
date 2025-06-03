@@ -10,6 +10,5 @@ namespace CurrencyConverter.Domain.Interfaces
         Task<ExchangeRate> GetLatestExchangeRatesAsync(string baseCurrency, List<string> symbols = null);
         Task<ExchangeRate> GetExchangeRatesByDateAsync(DateTime date, string baseCurrency, List<string> symbols = null);
         Task<HistoricalExchangeRate> GetHistoricalExchangeRatesAsync(DateTime startDate, DateTime endDate, string baseCurrency, List<string> symbols = null);
-        Task<Dictionary<string, string>> GetAvailableCurrenciesAsync();
     }
 }

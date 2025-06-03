@@ -144,54 +144,6 @@ namespace CurrencyConverter.Tests.Infrastructure
                     ItExpr.IsAny<CancellationToken>());
         }
 
-
-        [Fact]
-        public async Task GetAvailableCurrenciesAsync_ReturnsCurrencies()
-        {
-            // Arrange
-            var response = new Dictionary<string, string>
-            {
-                { "USD", "US Dollar" },
-                { "EUR", "Euro" },
-                { "GBP", "British Pound" },
-                { "JPY", "Japanese Yen" }
-            };
-            
-            var responseJson = JsonSerializer.Serialize(response);
-            
-            _mockHttpMessageHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent(responseJson)
-                });
-
-            // Act
-            var result = await _client.GetAvailableCurrenciesAsync();
-
-            // Assert
-            Assert.Equal(4, result.Count);
-            Assert.Equal("US Dollar", result["USD"]);
-            Assert.Equal("Euro", result["EUR"]);
-            Assert.Equal("British Pound", result["GBP"]);
-            Assert.Equal("Japanese Yen", result["JPY"]);
-            
-            _mockHttpMessageHandler
-                .Protected()
-                .Verify(
-                    "SendAsync",
-                    Times.Once(),
-                    ItExpr.Is<HttpRequestMessage>(req => 
-                        req.Method == HttpMethod.Get && 
-                        req.RequestUri.ToString().Contains("currencies")),
-                    ItExpr.IsAny<CancellationToken>());
-        }
-
         [Fact]
         public async Task GetLatestRatesAsync_WithApiError_ThrowsException()
         {

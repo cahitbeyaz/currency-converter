@@ -10,6 +10,5 @@ namespace CurrencyConverter.Infrastructure.Http
         Task<ExchangeRate> GetLatestRatesAsync(string baseCurrency = "EUR", List<string> symbols = null);
         Task<ExchangeRate> GetRatesByDateAsync(DateTime date, string baseCurrency = "EUR", List<string> symbols = null);
         Task<HistoricalExchangeRate> GetHistoricalRatesAsync(DateTime startDate, DateTime endDate, string baseCurrency = "EUR", List<string> symbols = null);
-        Task<Dictionary<string, string>> GetAvailableCurrenciesAsync();
     }
 }

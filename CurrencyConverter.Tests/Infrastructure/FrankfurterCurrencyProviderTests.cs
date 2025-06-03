@@ -140,34 +140,7 @@ namespace CurrencyConverter.Tests.Infrastructure
             _mockApiClient.Verify(x => x.GetHistoricalRatesAsync(startDate, endDate, baseCurrency, symbols), Times.Once);
         }
 
-        [Fact]
-        public async Task GetAvailableCurrenciesAsync_CallsApiClient()
-        {
-            // Arrange
-            var expectedCurrencies = new Dictionary<string, string>
-            {
-                { "USD", "US Dollar" },
-                { "EUR", "Euro" },
-                { "GBP", "British Pound" },
-                { "JPY", "Japanese Yen" }
-            };
-            
-            _mockApiClient
-                .Setup(x => x.GetAvailableCurrenciesAsync())
-                .ReturnsAsync(expectedCurrencies);
 
-            // Act
-            var result = await _provider.GetAvailableCurrenciesAsync();
-
-            // Assert
-            Assert.Equal(expectedCurrencies.Count, result.Count);
-            Assert.Equal(expectedCurrencies["USD"], result["USD"]);
-            Assert.Equal(expectedCurrencies["EUR"], result["EUR"]);
-            Assert.Equal(expectedCurrencies["GBP"], result["GBP"]);
-            Assert.Equal(expectedCurrencies["JPY"], result["JPY"]);
-            
-            _mockApiClient.Verify(x => x.GetAvailableCurrenciesAsync(), Times.Once);
-        }
         
         [Fact]
         public async Task GetLatestExchangeRatesAsync_WithNullSymbols_PassesNullToApiClient()

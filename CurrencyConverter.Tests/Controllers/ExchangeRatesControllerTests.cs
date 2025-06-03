@@ -319,50 +319,6 @@ namespace CurrencyConverter.Tests.Controllers
             Assert.Equal(500, statusCodeResult.StatusCode);
         }
 
-        [Fact]
-        public async Task GetAvailableCurrencies_ReturnsOkWithCurrencies()
-        {
-            // Arrange
-            var expectedCurrencies = new Dictionary<string, string>
-            {
-                { "USD", "US Dollar" },
-                { "EUR", "Euro" },
-                { "JPY", "Japanese Yen" },
-                { "GBP", "British Pound" }
-            };
-            
-            _mockCurrencyService
-                .Setup(x => x.GetAvailableCurrenciesAsync())
-                .ReturnsAsync(expectedCurrencies);
 
-            // Act
-            var result = await _controller.GetAvailableCurrencies();
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(result.Result);
-            var returnValue = Assert.IsType<Dictionary<string, string>>(okResult.Value);
-            
-            Assert.Equal(expectedCurrencies.Count, returnValue.Count);
-            Assert.Equal(expectedCurrencies["USD"], returnValue["USD"]);
-            Assert.Equal(expectedCurrencies["EUR"], returnValue["EUR"]);
-            
-            _mockCurrencyService.Verify(x => x.GetAvailableCurrenciesAsync(), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetAvailableCurrencies_WhenServiceThrowsException_ReturnsStatusCode500()
-        {
-            // Arrange
-            _mockCurrencyService
-                .Setup(x => x.GetAvailableCurrenciesAsync())
-                .ThrowsAsync(new Exception("Test exception"));
-
-            // Act
-            var result = await _controller.GetAvailableCurrencies();
-
-            // Assert
-            var statusCodeResult = Assert.IsType<ObjectResult>(result.Result);
-            Assert.Equal(500, statusCodeResult.StatusCode);
-        }
     }
 }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CurrencyConverter.Application.Services;
 using CurrencyConverter.Domain.Entities;
 using CurrencyConverter.Domain.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -48,6 +49,7 @@ namespace CurrencyConverter.Tests.Services
         private readonly ICurrencyProvider _frankfurterProvider;
         private readonly ICurrencyProvider _customProvider;
         private readonly Mock<ILogger<CurrencyProviderFactory>> _mockLogger;
+        private readonly Mock<IConfiguration> _mockConfiguration;
         private CurrencyProviderFactory _factory;
 
         public CurrencyProviderFactoryTests()
@@ -55,6 +57,10 @@ namespace CurrencyConverter.Tests.Services
             _frankfurterProvider = new FrankfurterCurrencyProvider();
             _customProvider = new CustomCurrencyProvider();
             _mockLogger = new Mock<ILogger<CurrencyProviderFactory>>();
+            _mockConfiguration = new Mock<IConfiguration>();
+            
+            // Set up configuration to return "Frankfurter" as the default provider
+            _mockConfiguration.Setup(c => c["DefaultCurrencyProvider"]).Returns("Frankfurter");
             
             var providers = new List<ICurrencyProvider>
             {
@@ -62,7 +68,7 @@ namespace CurrencyConverter.Tests.Services
                 _customProvider
             };
             
-            _factory = new CurrencyProviderFactory(providers, _mockLogger.Object);
+            _factory = new CurrencyProviderFactory(providers, _mockConfiguration.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -115,7 +121,20 @@ namespace CurrencyConverter.Tests.Services
             };
             
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => new CurrencyProviderFactory(providers, null));
+            Assert.Throws<ArgumentNullException>(() => new CurrencyProviderFactory(providers, _mockConfiguration.Object, null));
+        }
+        
+        [Fact]
+        public void Constructor_WithNullConfiguration_ThrowsArgumentNullException()
+        {
+            // Arrange
+            var providers = new List<ICurrencyProvider>
+            {
+                _frankfurterProvider
+            };
+            
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => new CurrencyProviderFactory(providers, null, _mockLogger.Object));
         }
 
         [Fact]
@@ -123,6 +142,9 @@ namespace CurrencyConverter.Tests.Services
         {
             // Arrange
             var mockLogger = new Mock<ILogger<CurrencyProviderFactory>>();
+            var mockConfig = new Mock<IConfiguration>();
+            mockConfig.Setup(c => c["DefaultCurrencyProvider"]).Returns("provider1");
+            
             var provider1 = new Provider1CurrencyProvider();
             var provider2 = new Provider2CurrencyProvider();
             
@@ -133,7 +155,7 @@ namespace CurrencyConverter.Tests.Services
             };
             
             // Act
-            var factory = new CurrencyProviderFactory(providers, mockLogger.Object);
+            var factory = new CurrencyProviderFactory(providers, mockConfig.Object, mockLogger.Object);
             
             // Assert
             var resolvedProvider1 = factory.GetProvider("provider1");
@@ -141,6 +163,29 @@ namespace CurrencyConverter.Tests.Services
             
             Assert.Equal(provider1, resolvedProvider1);
             Assert.Equal(provider2, resolvedProvider2);
+        }
+        
+        [Fact]
+        public void GetProvider_UsesConfigurationDefaultWhenNoProviderSpecified()
+        {
+            // Arrange
+            var mockLogger = new Mock<ILogger<CurrencyProviderFactory>>();
+            var mockConfig = new Mock<IConfiguration>();
+            mockConfig.Setup(c => c["DefaultCurrencyProvider"]).Returns("custom");
+            
+            var providers = new List<ICurrencyProvider>
+            {
+                _frankfurterProvider,
+                _customProvider
+            };
+            
+            var factory = new CurrencyProviderFactory(providers, mockConfig.Object, mockLogger.Object);
+            
+            // Act
+            var provider = factory.GetProvider();
+            
+            // Assert - should return custom provider as configured
+            Assert.Equal(_customProvider, provider);
         }
     }
 }

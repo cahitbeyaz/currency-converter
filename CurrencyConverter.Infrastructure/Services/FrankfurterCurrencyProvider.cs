@@ -44,10 +44,6 @@ namespace CurrencyConverter.Infrastructure.Services
             return await _apiClient.GetHistoricalRatesAsync(startDate, endDate, baseCurrency, symbols);
         }
 
-        public async Task<Dictionary<string, string>> GetAvailableCurrenciesAsync()
-        {
-            _logger.LogInformation("Fetching available currencies from API");
-            return await _apiClient.GetAvailableCurrenciesAsync();
-        }
+
     }
 }

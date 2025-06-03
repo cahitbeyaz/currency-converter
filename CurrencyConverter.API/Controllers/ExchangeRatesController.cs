@@ -109,24 +109,6 @@ namespace CurrencyConverter.API.Controllers
             }
         }
 
-        /// <summary>
-        /// Gets a list of available currencies
-        /// </summary>
-        /// <returns>Available currencies</returns>
-        [HttpGet("currencies")]
-        [AllowAnonymous]
-        public async Task<ActionResult<Dictionary<string, string>>> GetAvailableCurrencies()
-        {
-            try
-            {
-                var result = await _currencyService.GetAvailableCurrenciesAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetAvailableCurrencies");
-                return StatusCode(500, new { error = "An unexpected error occurred" });
-            }
-        }
+
     }
 }

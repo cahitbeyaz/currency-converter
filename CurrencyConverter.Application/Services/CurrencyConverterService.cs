@@ -193,22 +193,6 @@ namespace CurrencyConverter.Application.Services
             return paginatedResult;
         }
 
-        public async Task<Dictionary<string, string>> GetAvailableCurrenciesAsync()
-        {
-            _logger.LogInformation("Getting available currencies");
 
-            var provider = _providerFactory.GetProvider();
-            var result = await provider.GetAvailableCurrenciesAsync();
-
-            // Filter out restricted currencies
-            foreach (var restrictedCurrency in _restrictedCurrencies)
-            {
-                result.Remove(restrictedCurrency);
-            }
-
-            _logger.LogInformation("Retrieved {Count} available currencies", result?.Count ?? 0);
-
-            return result;
-        }
     }
 }
