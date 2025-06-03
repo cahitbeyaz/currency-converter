@@ -30,7 +30,7 @@ namespace CurrencyConverter.API.Controllers
         /// <param name="request">Currency conversion request</param>
         /// <returns>Conversion result</returns>
         [HttpPost("convert")]
-        [Authorize(Roles = "User,Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CurrencyConversionResponse>> ConvertCurrency([FromBody] CurrencyConversionRequest request)
         {
             try

@@ -239,5 +239,3 @@ docker run -p 80:8080 currency-converter-api
 - Real-time currency updates using WebSockets
 - Enhanced analytics dashboard for monitoring API usage
 - AI-powered currency trend predictions
-- Mobile application for on-the-go currency conversion
-- Support for cryptocurrency conversions
