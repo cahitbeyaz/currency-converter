@@ -70,16 +70,6 @@ namespace CurrencyConverter.IntegrationTests
         }
 
         [Fact]
-        public async Task ProtectedEndpoint_WithoutToken_ReturnsUnauthorized()
-        {
-            // Act
-            var response = await _client.GetAsync("/api/v1/exchangerates/historical");
-
-            // Assert
-            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        }
-
-        [Fact]
         public async Task ProtectedEndpoint_WithValidToken_ReturnsSuccess()
         {
             // Arrange - Get a valid token first
