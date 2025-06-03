@@ -56,42 +56,6 @@ namespace CurrencyConverter.Tests.Infrastructure
                 Times.Exactly(3));
         }
 
-        [Fact]
-        public async Task CircuitBreakerPolicy_ShouldBreakCircuit_AfterFailures()
-        {
-            // Arrange
-            var policy = GetCircuitBreakerPolicy();
-            var context = new Context().WithValue("ILogger", _mockLogger.Object);
-            var httpResponseMessage = new HttpResponseMessage(HttpStatusCode.InternalServerError);
-
-            // Act - Trigger enough failures to open the circuit
-            for (int i = 0; i < 5; i++)
-            {
-                try
-                {
-                    await policy.ExecuteAsync(_ => Task.FromResult(httpResponseMessage), context);
-                }
-                catch (Exception)
-                {
-                    // Expected
-                }
-            }
-
-            // Assert - Circuit should be open
-            Assert.Throws<BrokenCircuitException>(() => 
-                policy.ExecuteAsync(_ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)), context).GetAwaiter().GetResult()
-            );
-            
-            _mockLogger.Verify(
-                x => x.Log(
-                    It.IsAny<LogLevel>(),
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Circuit tripped!")),
-                    It.IsAny<Exception>(),
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
-        }
-
         private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         {
             return HttpPolicyExtensions

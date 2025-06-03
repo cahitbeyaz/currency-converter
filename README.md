@@ -219,10 +219,10 @@ A Dockerfile is provided for containerized deployments:
 
 ```bash
 # Build the container
-docker build -t currency-converter-api .
+docker build -t currency-converter-api -f .\CurrencyConverter.API\Dockerfile .
 
 # Run the container
-docker run -p 8080:80 currency-converter-api
+docker run -p 80:8080 currency-converter-api
 ```
 
 ## Assumptions and Design Decisions
