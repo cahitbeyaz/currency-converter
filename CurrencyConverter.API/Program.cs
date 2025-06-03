@@ -115,7 +115,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Configure HTTP Clients with Polly for resilience
-builder.Services.AddHttpClient<FrankfurterApiClient>(client =>
+builder.Services.AddHttpClient<IFrankfurterApiClient, FrankfurterApiClient>(client =>
 {
     client.BaseAddress = new Uri("https://api.frankfurter.app/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");

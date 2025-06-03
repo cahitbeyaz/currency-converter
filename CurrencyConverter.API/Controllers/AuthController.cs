@@ -36,32 +36,26 @@ namespace CurrencyConverter.API.Controllers
             // Validate request
             if (request == null)
             {
-                _logger.LogWarning("Login attempt with null request");
                 return BadRequest(new { error = "Login request cannot be null" });
             }
             
             if (string.IsNullOrWhiteSpace(request.Username))
             {
-                _logger.LogWarning("Login attempt with empty username");
                 return BadRequest(new { error = "Username cannot be empty" });
             }
             
             if (string.IsNullOrWhiteSpace(request.Password))
             {
-                _logger.LogWarning("Login attempt with empty password for user {Username}", request.Username);
                 return BadRequest(new { error = "Password cannot be empty" });
             }
             
-            _logger.LogInformation("Login attempt for user {Username}", request.Username);
             var result = await _authService.AuthenticateAsync(request.Username, request.Password);
             
             if (result.Success)
             {
-                _logger.LogInformation("User {Username} logged in successfully", request.Username);
                 return Ok(new TokenResponse { Token = result.Token });
             }
             
-            _logger.LogWarning("Failed login attempt for user {Username}: {ErrorMessage}", request.Username, result.ErrorMessage);
             return Unauthorized(new { error = result.ErrorMessage });
         }
     }

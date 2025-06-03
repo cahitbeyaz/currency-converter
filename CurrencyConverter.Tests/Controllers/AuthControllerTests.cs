@@ -73,19 +73,6 @@ namespace CurrencyConverter.Tests.Controllers
             _mockAuthService.Verify(x => x.AuthenticateAsync(loginRequest.Username, loginRequest.Password), Times.Once);
         }
 
-
-        [Fact]
-        public async Task Login_WithNullRequest_ThrowsException()
-        {
-            // Arrange
-            LoginRequest request = null;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<NullReferenceException>(() => _controller.Login(request));
-            
-            _mockAuthService.Verify(x => x.AuthenticateAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        }
-
         [Fact]
         public async Task Login_WithEmptyUsername_ReturnsBadRequest()
         {

@@ -1,163 +1,243 @@
 # Currency Converter API
 
-A robust, scalable, and maintainable currency conversion API using C# and ASP.NET Core, ensuring high performance, security, and resilience.
+A robust, scalable, and maintainable currency conversion API built with .NET 9, implementing industry best practices for performance, security, and resilience.
 
 ## Features
 
-- **API Endpoints**
-  - Retrieve latest exchange rates for a specific base currency
-  - Convert amounts between different currencies
-  - Retrieve historical exchange rates with pagination
-  - Get available currencies
+### API Endpoints
 
-- **Architecture & Design**
-  - Clean architecture with separation of concerns
-  - Factory pattern for currency provider selection
-  - Dependency injection for all services
-  - Extensible design for adding new currency providers
+- **Exchange Rates**: Get the latest exchange rates for any base currency
+- **Currency Conversion**: Convert amounts between different currencies with validation
+- **Historical Data**: Access historical exchange rates with advanced pagination
+- **Currency Information**: Retrieve available currencies and metadata
 
-- **Resilience & Performance**
-  - In-memory caching to minimize external API calls
-  - Retry policies with exponential backoff
-  - Circuit breaker for handling API outages
-  - Rate limiting to prevent abuse
+### Architecture
 
-- **Security**
-  - JWT authentication for API endpoints
-  - Role-based access control (RBAC)
-  - API throttling
+- **Clean Architecture** with distinct layers:
+  - `CurrencyConverter.API`: Controllers, middleware, and API configuration
+  - `CurrencyConverter.Application`: Business logic and services
+  - `CurrencyConverter.Domain`: Core entities and interfaces
+  - `CurrencyConverter.Infrastructure`: External services integration and data access
+  - `CurrencyConverter.Tests`: Comprehensive test suite
 
-- **Logging & Monitoring**
-  - Structured logging with Serilog
-  - Request/response logging with correlation
-  - OpenTelemetry for distributed tracing
+- **Design Patterns**:
+  - Factory pattern for dynamic currency provider selection
+  - Repository pattern for data access abstraction
+  - Decorator pattern for cross-cutting concerns
+
+### Resilience & Performance
+
+- **Caching Strategy**: In-memory caching to minimize external API calls
+- **Retry Policies**: Exponential backoff for handling transient failures
+- **Circuit Breaker**: Graceful degradation during downstream service outages
+- **Rate Limiting**: Prevents API abuse and ensures fair usage
+
+### Security
+
+- **JWT Authentication**: Secure token-based authentication
+- **Role-Based Access Control**: Fine-grained permission management
+- **Request Validation**: Input sanitization and validation
+- **API Throttling**: Protection against brute force and DoS attacks
+
+### Observability
+
+- **Structured Logging**: Detailed request/response logs with correlation IDs
+- **Request Tracing**: Complete visibility into API call chains
+- **Performance Metrics**: Monitoring of response times and system health
 
 ## Project Structure
 
-- **CurrencyConverter.API**: API controllers, middleware, authentication
-- **CurrencyConverter.Core**: Domain models, interfaces, business logic
-- **CurrencyConverter.Infrastructure**: External services, data access, caching
+```
+CurrencyConverter2/
+├── CurrencyConverter.API/             # API layer
+│   ├── Controllers/                   # API endpoints
+│   ├── Extensions/                    # Service registration and middleware
+│   ├── Middleware/                    # Custom middleware components
+│   └── Program.cs                     # Application entry point and configuration
+├── CurrencyConverter.Application/     # Application layer
+│   ├── Interfaces/                    # Service contracts
+│   └── Services/                      # Service implementations
+├── CurrencyConverter.Domain/          # Domain layer
+│   └── Models/                        # Domain entities
+├── CurrencyConverter.Infrastructure/  # Infrastructure layer
+│   ├── Http/                          # External API clients
+│   └── Services/                      # Infrastructure service implementations
+├── CurrencyConverter.Tests/           # Test projects
+│   ├── Controllers/                   # Controller tests
+│   ├── Extensions/                    # Extension method tests
+│   ├── Infrastructure/                # Infrastructure tests
+│   └── Services/                      # Service tests
+└── TestResults/                       # Generated test results and coverage reports
+```
 
-## Setup Instructions
+## Getting Started
 
 ### Prerequisites
 
-- .NET 7.0 or later
-- Visual Studio 2022 or other compatible IDE
-- Git
+- .NET 9.0 SDK
+- Visual Studio 2022 or compatible IDE (optional)
 
 ### Installation
 
 1. Clone the repository:
-   ```
+   ```bash
    git clone https://github.com/yourusername/CurrencyConverter.git
-   ```
-
-2. Navigate to the project directory:
-   ```
    cd CurrencyConverter
    ```
 
-3. Restore dependencies:
-   ```
+2. Restore dependencies and build:
+   ```bash
    dotnet restore
-   ```
-
-4. Build the solution:
-   ```
    dotnet build
    ```
 
-5. Update JWT Secret in appsettings.json:
+3. Configure the application settings in `appsettings.json`:
    ```json
-   "JwtSettings": {
-     "Secret": "YourSuperSecretKeyWithAtLeast32Characters",
-     "Issuer": "CurrencyConverterAPI",
-     "Audience": "CurrencyConverterAPIClients",
-     "ExpirationInMinutes": 60
+   {
+     "JwtSettings": {
+       "Secret": "your-strong-secret-key-at-least-32-chars",
+       "Issuer": "CurrencyConverterAPI",
+       "Audience": "ApiClients",
+       "ExpirationInMinutes": 60
+     },
+     "ApiRateLimits": {
+       "PerSecond": 10,
+       "PerDay": 10000
+     },
+     "CurrencyProviders": {
+       "Default": "frankfurter",
+       "Providers": [
+         {
+           "Name": "frankfurter",
+           "BaseUrl": "https://api.frankfurter.app"
+         }
+       ]
+     }
    }
    ```
 
-6. Run the application:
-   ```
+4. Run the application:
+   ```bash
    dotnet run --project CurrencyConverter.API
    ```
 
-7. Access the Swagger UI:
+5. The API will be available at:
    ```
-   https://localhost:5001/swagger
+   https://localhost:5001
    ```
 
 ## API Usage
 
 ### Authentication
 
-1. Use the `/api/v1/auth/login` endpoint to get a JWT token:
-   ```
-   POST /api/v1/auth/login
-   {
-     "username": "user",
-     "password": "password"
-   }
-   ```
+To access protected endpoints, first obtain a JWT token:
 
-2. Include the token in the Authorization header:
-   ```
-   Authorization: Bearer <your-token>
-   ```
+```http
+POST /api/auth/login
+Content-Type: application/json
 
-### Example Requests
+{
+  "username": "admin",
+  "password": "password123"
+}
+```
 
-1. Get latest exchange rates:
-   ```
-   GET /api/v1/exchangerates/latest?baseCurrency=USD&symbols=EUR,GBP,JPY
-   ```
+Use the returned token in subsequent requests:
 
-2. Convert currency:
-   ```
-   POST /api/v1/currencyconversion/convert
-   {
-     "fromCurrency": "USD",
-     "toCurrency": "EUR",
-     "amount": 100
-   }
-   ```
+```http
+GET /api/currency/latest?base=USD
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
 
-3. Get historical rates with pagination:
-   ```
-   GET /api/v1/exchangerates/historical?startDate=2023-01-01&endDate=2023-01-31&baseCurrency=USD&symbols=EUR,GBP&pageNumber=1&pageSize=10
-   ```
+### Available Endpoints
 
-## Key Design Decisions
+#### Get Latest Exchange Rates
 
-1. **Currency Provider Factory**: Enables dynamic selection of currency providers, allowing for future integration with multiple exchange rate providers beyond Frankfurter.
+```http
+GET /api/exchangerates/latest?base=EUR
+```
 
-2. **Caching Strategy**: Implemented in-memory caching to reduce calls to external APIs, with configurable expiration times.
+#### Convert Currency
 
-3. **Resilience Patterns**: Used Polly for retry and circuit breaker patterns to handle transient failures and prevent cascading failures.
+```http
+GET /api/currency/convert?from=USD&to=EUR&amount=100
+```
 
-4. **RBAC Implementation**: Different endpoints require different roles, with some endpoints being more restricted than others.
+#### Get Historical Exchange Rates
 
-5. **Restricted Currencies**: Implementation of business rules to exclude specific currencies (TRY, PLN, THB, MXN).
+```http
+GET /api/exchangerates/history?base=EUR&start=2023-01-01&end=2023-01-31&page=1&pageSize=10
+```
 
-## Assumptions
+## Testing
 
-1. The Frankfurter API is the primary data source for exchange rates.
-2. Rate limits are applied per IP address.
-3. JWT tokens are short-lived (60 minutes) for security.
-4. For demonstration purposes, user credentials are hardcoded.
+### Running Tests
+
+To run the unit tests:
+
+```bash
+dotnet test
+```
+
+### Code Coverage
+
+This project uses Coverlet and ReportGenerator for code coverage analysis:
+
+1. Ensure you have the required tools:
+
+```bash
+dotnet tool restore
+```
+
+2. Generate a coverage report:
+
+```bash
+# Windows PowerShell
+.\run-coverage.ps1
+
+# Linux/macOS
+./run-coverage.ps1
+```
+
+3. View the HTML report at `TestResults/CoverageReport/index.html`
+
+## Deployment
+
+### Environment Configuration
+
+The application supports multiple deployment environments:
+
+- **Development**: Local development with debugging
+- **Staging**: Pre-production testing environment
+- **Production**: Live environment with optimized settings
+
+Environment-specific settings can be configured using environment variables or environment-specific appsettings files.
+
+### Containerization
+
+A Dockerfile is provided for containerized deployments:
+
+```bash
+# Build the container
+docker build -t currency-converter-api .
+
+# Run the container
+docker run -p 8080:80 currency-converter-api
+```
+
+## Assumptions and Design Decisions
+
+- The API uses Frankfurter as the default currency data provider, but the architecture supports adding additional providers.
+- Certain currencies (TRY, PLN, THB, MXN) are restricted as per business requirements.
+- JWT authentication is implemented with role-based permissions to secure endpoints.
+- In-memory caching is used to optimize performance and reduce external API calls.
+- Structured logging captures client IP, client ID, request details, and response metrics.
 
 ## Future Enhancements
 
-1. **Additional Providers**: Add more currency data providers (e.g., OpenExchangeRates, Fixer.io).
-2. **Database Integration**: Store historical exchange rates in a database for better performance.
-3. **User Management**: Add proper user registration and management system.
-4. **Rate Limit by User**: Implement user-based rate limiting instead of just IP-based.
-5. **Caching Provider**: Replace in-memory cache with Redis for distributed caching.
-6. **GraphQL API**: Add GraphQL endpoint for more flexible data querying.
-7. **Containerization**: Add Docker support for easier deployment.
-8. **CI/CD Pipeline**: Implement automated testing and deployment pipeline.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Integration with additional currency data providers
+- Real-time currency updates using WebSockets
+- Enhanced analytics dashboard for monitoring API usage
+- AI-powered currency trend predictions
+- Mobile application for on-the-go currency conversion
+- Support for cryptocurrency conversions
