@@ -106,8 +106,6 @@ namespace CurrencyConverter.Application.Services
             };
         }
 
-        // Method removed as it was referencing non-existent API methods
-
         public async Task<ExchangeRate> GetLatestExchangeRatesAsync(string baseCurrency, List<string> symbols = null)
         {
             if (string.IsNullOrWhiteSpace(baseCurrency))
