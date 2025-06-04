@@ -79,6 +79,9 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// Add health checks for Docker/Nginx
+builder.Services.AddHealthChecks();
+
 // Register Swagger with JWT authentication
 builder.Services.AddSwaggerGen(c =>
 {
@@ -183,6 +186,9 @@ app.MapControllers();
 
 // Configure default route
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
+// Map health check endpoint for container orchestration/load balancing
+app.MapHealthChecks("/health");
 
 app.Run();
 

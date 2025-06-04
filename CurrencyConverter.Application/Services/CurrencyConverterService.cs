@@ -113,21 +113,11 @@ namespace CurrencyConverter.Application.Services
             if (string.IsNullOrWhiteSpace(baseCurrency))
                 throw new ArgumentException("Base currency must be specified", nameof(baseCurrency));
 
-            var symbolsKey = symbols == null ? "all" : string.Join("_", symbols.OrderBy(s => s));
-            var cacheKey = $"latest_{baseCurrency}_{symbolsKey}";
-
-            if (_cache.TryGetValue(cacheKey, out ExchangeRate cachedRates))
-            {
-                _logger.LogInformation("Retrieved latest exchange rates for {BaseCurrency} from cache", baseCurrency);
-                return cachedRates;
-            }
-
+            // Latest exchange rates should always be fetched from the provider to ensure freshness
+            // No caching is used for this endpoint as users expect real-time data when requesting "latest"
             var provider = _providerFactory.GetProvider();
             _logger.LogInformation("Fetching latest exchange rates for {BaseCurrency} from provider", baseCurrency);
-            var result = await provider.GetLatestExchangeRatesAsync(baseCurrency, symbols);
-            
-            _cache.Set(cacheKey, result, _cacheDuration);
-            return result;
+            return await provider.GetLatestExchangeRatesAsync(baseCurrency, symbols);
         }
 
         public async Task<PaginatedResult<KeyValuePair<string, Dictionary<string, decimal>>>> GetHistoricalExchangeRatesAsync(

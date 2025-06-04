@@ -8,8 +8,10 @@ A robust, scalable, and maintainable currency conversion API built with .NET 9, 
 
 - **Exchange Rates**: Get the latest exchange rates for any base currency
 - **Currency Conversion**: Convert amounts between different currencies with validation
+  - Business validation to exclude specific currencies (TRY, PLN, THB, MXN) with appropriate error responses
 - **Historical Data**: Access historical exchange rates with advanced pagination
 - **Currency Information**: Retrieve available currencies and metadata
+- **API Versioning**: All endpoints support API versioning for future-proofing
 
 ### Architecture
 
@@ -27,23 +29,31 @@ A robust, scalable, and maintainable currency conversion API built with .NET 9, 
 
 ### Resilience & Performance
 
-- **Caching Strategy**: In-memory caching to minimize external API calls
-- **Retry Policies**: Exponential backoff for handling transient failures
+- **Caching Strategy**: In-memory caching to minimize direct calls to the Frankfurter API
+- **Retry Policies**: Exponential backoff for handling transient failures (3 retries with increasing delays)
 - **Circuit Breaker**: Graceful degradation during downstream service outages
-- **Rate Limiting**: Prevents API abuse and ensures fair usage
+- **Rate Limiting**: Configurable per-endpoint and global limits to prevent API abuse
+- **Provider Factory Pattern**: Dynamic selection of currency providers based on configuration
 
 ### Security
 
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access Control**: Fine-grained permission management
-- **Request Validation**: Input sanitization and validation
-- **API Throttling**: Protection against brute force and DoS attacks
+- **JWT Authentication**: Secure token-based authentication with configurable settings
+- **Role-Based Access Control**: Fine-grained permission management for protected endpoints
+- **Request Validation**: Input sanitization and validation for all API inputs
+- **API Throttling**: Protection against brute force and DoS attacks using IP-based rate limiting
+- **Environment-Specific Secrets**: JWT secrets managed via environment variables for security
 
 ### Observability
 
-- **Structured Logging**: Detailed request/response logs with correlation IDs
-- **Request Tracing**: Complete visibility into API call chains
+- **Structured Logging**: Detailed request/response logs including:
+  - Client IP address
+  - ClientId from JWT token
+  - HTTP method and target endpoint
+  - Response code and response time
+- **Correlation IDs**: Request correlation between client calls and external API calls
+- **Request Tracing**: Complete visibility into API call chains using OpenTelemetry
 - **Performance Metrics**: Monitoring of response times and system health
+- **Environment-Specific Log Levels**: Configurable logging based on environment
 
 ## Project Structure
 
@@ -76,6 +86,7 @@ CurrencyConverter2/
 
 - .NET 9.0 SDK
 - Visual Studio 2022 or compatible IDE (optional)
+- Docker and Docker Compose (for containerized deployment)
 
 ### Installation
 
@@ -91,35 +102,81 @@ CurrencyConverter2/
    dotnet build
    ```
 
-3. Configure the application settings in `appsettings.json`:
-   ```json
-   {
-     "JwtSettings": {
-       "Secret": "your-strong-secret-key-at-least-32-chars",
-       "Issuer": "CurrencyConverterAPI",
-       "Audience": "ApiClients",
-       "ExpirationInMinutes": 60
-     },
-     "ApiRateLimits": {
-       "PerSecond": 10,
-       "PerDay": 10000
-     },
-     "CurrencyProviders": {
-       "Default": "frankfurter",
-       "Providers": [
-         {
-           "Name": "frankfurter",
-           "BaseUrl": "https://api.frankfurter.app"
-         }
-       ]
-     }
-   }
+### Environment Configuration
+
+The application supports multiple environments with environment-specific settings:
+
+- **Development**: Enhanced debugging and detailed logs (appsettings.Development.json)
+- **Staging**: Testing environment with moderate logging (appsettings.Staging.json)
+- **Production**: Optimized for performance with minimal logging (appsettings.json)
+
+Each environment has appropriate settings for:
+- Logging levels
+- JWT authentication configuration
+- Rate limiting rules
+- Cache expiration times
+
+### Running Locally
+
+1. Set the environment:
+   ```bash
+   # Windows
+   $env:ASPNETCORE_ENVIRONMENT="Development"
+   
+   # Linux/macOS
+   export ASPNETCORE_ENVIRONMENT=Development
    ```
 
-4. Run the application:
+2. Run the application:
    ```bash
    dotnet run --project CurrencyConverter.API
    ```
+
+3. Access the API at `https://localhost:5001` or via Swagger at `https://localhost:5001/swagger`
+
+### Docker Deployment
+
+The application is containerized and supports horizontal scaling with NGINX load balancing:
+
+1. Run with Docker Compose:
+   ```bash
+   # Using default JWT secret
+   docker-compose up -d
+   
+   # Using custom JWT secret (recommended for production)
+   JWT_SECRET=your_secure_secret docker-compose up -d
+   ```
+
+2. Scale the API horizontally:
+   ```bash
+   # Scale to 5 instances
+   docker-compose up -d --scale api=5
+   ```
+
+3. Access the load-balanced API at `http://localhost:80`
+
+### Autoscaling with Docker Swarm
+
+For production deployments with autoscaling, the application can be deployed to Docker Swarm:
+
+1. Initialize Docker Swarm:
+   ```bash
+   docker swarm init
+   ```
+
+2. Deploy the stack with autoscaling:
+   ```bash
+   # Deploy the stack
+   docker stack deploy -c docker-compose.yml currencyconverter
+   ```
+
+3. Configure autoscaling rules (requires additional monitoring):
+   ```bash
+   # Example autoscaling command with external tools
+   docker service update --replicas-max 5 --replicas-min 2 currencyconverter_api
+   ```
+
+> Note: For production-grade autoscaling, consider using Kubernetes with Horizontal Pod Autoscaler (HPA) which can scale based on CPU/memory metrics.
 
 5. The API will be available at:
    ```

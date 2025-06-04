@@ -239,11 +239,6 @@ namespace CurrencyConverter.Tests.Services
                 }
             };
             
-            object cachedValue = null;
-            _mockCache
-                .Setup(x => x.TryGetValue(It.IsAny<string>(), out cachedValue))
-                .Returns(false);
-            
             _mockProvider
                 .Setup(x => x.GetLatestExchangeRatesAsync(baseCurrency, symbols))
                 .ReturnsAsync(expectedRates);
@@ -258,17 +253,20 @@ namespace CurrencyConverter.Tests.Services
             Assert.Equal(expectedRates.Rates["EUR"], result.Rates["EUR"]);
             Assert.Equal(expectedRates.Rates["GBP"], result.Rates["GBP"]);
             
+            // Verify that provider was called and cache was not used
             _mockProvider.Verify(x => x.GetLatestExchangeRatesAsync(baseCurrency, symbols), Times.Once);
+            _mockCache.Verify(x => x.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny), Times.Never);
+            _mockCache.Verify(x => x.CreateEntry(It.IsAny<object>()), Times.Never);
         }
 
         [Fact]
-        public async Task GetLatestExchangeRatesAsync_WithCachedRates_ReturnsCachedRates()
+        public async Task GetLatestExchangeRatesAsync_AlwaysFetchesFromProvider()
         {
             // Arrange
             var baseCurrency = "USD";
             var symbols = new List<string> { "EUR", "GBP" };
             
-            var cachedRates = new ExchangeRate
+            var expectedRates = new ExchangeRate
             {
                 Base = baseCurrency,
                 Date = DateTime.Today,
@@ -279,20 +277,29 @@ namespace CurrencyConverter.Tests.Services
                 }
             };
             
-            object cachedValue = cachedRates;
+            // Setup provider to return the expected rates
+            _mockProvider
+                .Setup(x => x.GetLatestExchangeRatesAsync(baseCurrency, symbols))
+                .ReturnsAsync(expectedRates);
+            
+            // Even if there's a cached value, it should not be used
+            object cachedValue = new ExchangeRate { Base = "USD", Rates = new Dictionary<string, decimal>() };
             _mockCache
                 .Setup(x => x.TryGetValue(It.IsAny<string>(), out cachedValue))
-                .Returns(true);
+                .Returns(true); // This should never be called
 
             // Act
             var result = await _service.GetLatestExchangeRatesAsync(baseCurrency, symbols);
 
             // Assert
-            Assert.Equal(cachedRates.Base, result.Base);
-            Assert.Equal(cachedRates.Date, result.Date);
-            Assert.Equal(cachedRates.Rates.Count, result.Rates.Count);
+            Assert.Equal(expectedRates.Base, result.Base);
+            Assert.Equal(expectedRates.Date, result.Date);
+            Assert.Equal(expectedRates.Rates.Count, result.Rates.Count);
             
-            _mockProvider.Verify(x => x.GetLatestExchangeRatesAsync(It.IsAny<string>(), It.IsAny<List<string>>()), Times.Never);
+            // Verify the provider was called and cache was not used
+            _mockProvider.Verify(x => x.GetLatestExchangeRatesAsync(baseCurrency, symbols), Times.Once);
+            _mockCache.Verify(x => x.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny), Times.Never);
+            _mockCache.Verify(x => x.CreateEntry(It.IsAny<object>()), Times.Never);
         }
 
         [Fact]
